@@ -89,7 +89,7 @@ dpkg_ar_put_magic(const char *ar_name, int ar_fd)
 
 void
 dpkg_ar_member_put_header(const char *ar_name, int ar_fd,
-                          const char *name, time_t timestamp, off_t size)
+                          const char *name, off_t size)
 {
 	char header[sizeof(struct ar_hdr) + 1];
 	int n;
@@ -100,7 +100,7 @@ dpkg_ar_member_put_header(const char *ar_name, int ar_fd,
 		ohshit(_("ar member size %jd too large"), size);
 
 	n = sprintf(header, "%-16s%-12lu0     0     100644  %-10jd`\n",
-	            name, timestamp, (intmax_t)size);
+	            name, time(NULL), (intmax_t)size);
 	if (n != sizeof(struct ar_hdr))
 		ohshit(_("generated corrupt ar header for '%s'"), ar_name);
 
@@ -110,9 +110,10 @@ dpkg_ar_member_put_header(const char *ar_name, int ar_fd,
 
 void
 dpkg_ar_member_put_mem(const char *ar_name, int ar_fd,
-                       const char *name, const void *data, time_t timestamp, size_t size)
+                       const char *name, const void *data, size_t size)
 {
-	dpkg_ar_member_put_header(ar_name, ar_fd, name, timestamp, size);
+	dpkg_ar_member_put_header(ar_name, ar_fd, name, size);
+
 	/* Copy data contents. */
 	if (fd_write(ar_fd, data, size) < 0)
 		ohshite(_("unable to write file '%s'"), ar_name);
@@ -124,7 +125,7 @@ dpkg_ar_member_put_mem(const char *ar_name, int ar_fd,
 
 void
 dpkg_ar_member_put_file(const char *ar_name, int ar_fd,
-                        const char *name, int fd, time_t timestamp, off_t size)
+                        const char *name, int fd, off_t size)
 {
 	struct dpkg_error err;
 
@@ -136,7 +137,8 @@ dpkg_ar_member_put_file(const char *ar_name, int ar_fd,
 		size = st.st_size;
 	}
 
-	dpkg_ar_member_put_header(ar_name, ar_fd, name, timestamp, size);
+	dpkg_ar_member_put_header(ar_name, ar_fd, name, size);
+
 	/* Copy data contents. */
 	if (fd_fd_copy(fd, ar_fd, size, &err) < 0)
 		ohshit(_("cannot append ar member file (%s) to '%s': %s"),

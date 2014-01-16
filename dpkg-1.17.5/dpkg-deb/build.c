@@ -38,7 +38,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 
 #include <dpkg/i18n.h>
 #include <dpkg/dpkg.h>
@@ -433,24 +432,6 @@ pkg_get_pathname(const char *dir, struct pkginfo *pkg)
   return path;
 }
 
-static time_t
-get_build_timestamp(void)
-{
-  time_t timestamp;
-  const char *value;
-  char *end;
-
-  errno = 0;
-  value = getenv("DEB_BUILD_TIMESTAMP");
-  if (!value)
-    return time(NULL);
-
-  timestamp = strtol(value, &end, 10);
-  if ( (end == NULL) || (value == end) || (*end) || (errno != 0) )
-    ohshite(_("unable to parse timestamp `%.255s'"), value);
-  return timestamp;
-}
-
 /**
  * Overly complex function that builds a .deb file.
  */
@@ -460,14 +441,11 @@ do_build(const char *const *argv)
   struct dpkg_error err;
   const char *debar, *dir;
   bool subdir;
-  time_t build_timestamp;
   char *tfbuf;
   int arfd;
   int p1[2], p2[2], gzfd;
   pid_t c1, c2;
 
-	build_timestamp = get_build_timestamp();
-	
   /* Decode our arguments. */
   dir = *argv++;
   if (!dir)
@@ -582,8 +560,8 @@ do_build(const char *const *argv)
     const char deb_magic[] = ARCHIVEVERSION "\n";
 
     dpkg_ar_put_magic(debar, arfd);
-    dpkg_ar_member_put_mem(debar, arfd, DEBMAGIC, deb_magic, build_timestamp, strlen(deb_magic));
-    dpkg_ar_member_put_file(debar, arfd, ADMINMEMBER, gzfd, build_timestamp, -1);
+    dpkg_ar_member_put_mem(debar, arfd, DEBMAGIC, deb_magic, strlen(deb_magic));
+    dpkg_ar_member_put_file(debar, arfd, ADMINMEMBER, gzfd, -1);
   } else {
     internerr("unknown deb format version %d.%d", deb_format.major, deb_format.minor);
   }
@@ -652,7 +630,7 @@ do_build(const char *const *argv)
     if (lseek(gzfd, 0, SEEK_SET))
       ohshite(_("failed to rewind temporary file (%s)"), _("data member"));
 
-    dpkg_ar_member_put_file(debar, arfd, datamember, gzfd, build_timestamp, -1);
+    dpkg_ar_member_put_file(debar, arfd, datamember, gzfd, -1);
 
     close(gzfd);
   }

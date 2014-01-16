@@ -43,11 +43,11 @@ bool dpkg_ar_member_is_illegal(struct ar_hdr *arh);
 
 void dpkg_ar_put_magic(const char *ar_name, int ar_fd);
 void dpkg_ar_member_put_header(const char *ar_name, int ar_fd,
-                               const char *name, time_t timestamp, off_t size);
+                               const char *name, off_t size);
 void dpkg_ar_member_put_file(const char *ar_name, int ar_fd, const char *name,
-                             int fd, time_t timestamp, off_t size);
+                             int fd, off_t size);
 void dpkg_ar_member_put_mem(const char *ar_name, int ar_fd, const char *name,
-                            const void *data, time_t timestamp, size_t size);
+                            const void *data, size_t size);
 off_t dpkg_ar_member_get_size(const char *ar_name, struct ar_hdr *arh);
 
 /** @} */

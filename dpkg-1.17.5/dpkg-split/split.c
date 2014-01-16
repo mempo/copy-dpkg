@@ -215,13 +215,13 @@ mksplit(const char *file_src, const char *prefix, off_t maxpartsize,
 		              (intmax_t)st.st_size, (intmax_t)partsize,
 		              curpart, nparts, arch);
 		dpkg_ar_member_put_mem(file_dst.buf, fd_dst, PARTMAGIC,
-		                       partmagic.buf, time(NULL), partmagic.used);
+		                       partmagic.buf, partmagic.used);
 		varbuf_reset(&partmagic);
 
 		/* Write the data part. */
 		varbuf_printf(&partname, "data.%d", curpart);
 		dpkg_ar_member_put_file(file_dst.buf, fd_dst, partname.buf,
-		                        fd_src, time(NULL), cur_partsize);
+		                        fd_src, cur_partsize);
 		varbuf_reset(&partname);
 
 		close(fd_dst);
